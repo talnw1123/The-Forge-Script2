@@ -9,17 +9,13 @@
 -- ⚙️ SETTINGS (ปรับได้ตามต้องการ)
 ----------------------------------------------------------------
 local Settings = {
-    -- ====== EMULATOR MODE (NEW) ======
-    EmulatorMode = true,           -- โหมดสำหรับ Emulator (MuMu, LDPlayer) -> ปรับภาพให้ลื่นที่สุด
-    ExtremeMode = true,            -- ⚠️ โหมดสุดขีด (จอดำ/มองไม่เห็น) -> FPS สูงสุดสำหรับ Auto Farm เท่านั้น
-    
     -- ====== GRAPHICS ======
     LowerQuality = true,           -- ลดคุณภาพกราฟิกรวม
     DisableShadows = true,         -- ปิดเงา
     DisableParticles = true,       -- ปิด Particles/Effects
     DisableDecals = true,          -- ปิด Decals
-    DisableTextures = true,        -- ปิด Textures (Emulator ควรเปิดอันนี้)
-    Disable3DRendering = false,    -- ปิด 3D Rendering (จอดำ) -> เปิดถ้าต้องการ AFK แบบไม่ดูจอ
+    DisableTextures = false,       -- ปิด Textures (ทำให้ดูแย่มาก)
+    Disable3DRendering = false,    -- ปิด 3D Rendering (สุดขีด)
     
     -- ====== LIGHTING ======
     DisableGlobalShadows = true,   -- ปิด Global Shadows
@@ -30,7 +26,7 @@ local Settings = {
     
     -- ====== TERRAIN ======
     LowerTerrainQuality = true,    -- ลดคุณภาพ Terrain
-    DisableWater = true,           -- ปิด Water rendering (Emulator ควรปิด)
+    DisableWater = false,          -- ปิด Water rendering
     
     -- ====== CHARACTER ======
     DisablePlayerNames = false,    -- ซ่อนชื่อ Player
@@ -38,41 +34,12 @@ local Settings = {
     DisableAccessories = true,     -- ซ่อน Accessories
     
     -- ====== MISC ======
-    DisableSounds = true,          -- ปิดเสียง (Emulator ไม่จำเป็นต้องฟัง)
-    LimitFPS = true,               -- จำกัด FPS (ช่วยประหยัด CPU Emulator)
-    TargetFPS = 30,                -- FPS เป้าหมาย (30 ก็พอสำหรับ Auto Farm)
+    DisableSounds = false,         -- ปิดเสียง
+    LimitFPS = false,              -- จำกัด FPS (ช่วยประหยัด CPU)
+    TargetFPS = 60,                -- FPS เป้าหมาย (ถ้าเปิด LimitFPS)
     GarbageCollect = true,         -- ทำ Garbage Collection
     GCInterval = 60,               -- ทำ GC ทุกกี่วินาที
 }
-
--- Auto-configure for Emulator Mode
-if Settings.EmulatorMode then
-    Settings.DisableTextures = true
-    Settings.DisableDecals = true
-    Settings.DisableShadows = true
-    Settings.DisableParticles = true
-    Settings.DisableWater = true
-    Settings.SimplifyCharacters = true
-    Settings.DisableAccessories = true
-    Settings.DisableSounds = true
-    Settings.LimitFPS = true
-    Settings.TargetFPS = 30 -- 30 FPS is stable for emulators
-end
-
--- Auto-configure for Extreme Mode (Overrides Emulator Mode)
-if Settings.ExtremeMode then
-    Settings.Disable3DRendering = true -- Try to disable 3D rendering
-    Settings.DisableTextures = true
-    Settings.DisableDecals = true
-    Settings.DisableShadows = true
-    Settings.DisableParticles = true
-    Settings.DisableWater = true
-    Settings.SimplifyCharacters = true
-    Settings.DisableAccessories = true
-    Settings.DisableSounds = true
-    Settings.LimitFPS = true
-    Settings.TargetFPS = 15 -- Cap at 15 FPS for maximum CPU saving
-end
 
 ----------------------------------------------------------------
 -- 📦 SERVICES
@@ -296,40 +263,6 @@ local function optimizeCharacters()
 end
 
 ----------------------------------------------------------------
--- 🧱 MATERIAL OPTIMIZATION (Smooth Plastic)
-----------------------------------------------------------------
-local function optimizeMaterials()
-    if not Settings.EmulatorMode then return end
-    
-    print("🧱 Optimizing Materials (Smooth Plastic)...")
-    
-    local count = 0
-    for _, part in ipairs(Workspace:GetDescendants()) do
-        if part:IsA("BasePart") and not part:IsA("Terrain") then
-            pcall(function()
-                part.Material = Enum.Material.SmoothPlastic
-                part.Reflectance = 0
-                count = count + 1
-            end)
-        end
-    end
-    
-    print(string.format("   ✅ Converted %d parts to Smooth Plastic", count))
-    
-    -- Keep optimizing new parts
-    Workspace.DescendantAdded:Connect(function(part)
-        if part:IsA("BasePart") and not part:IsA("Terrain") then
-            task.defer(function()
-                pcall(function()
-                    part.Material = Enum.Material.SmoothPlastic
-                    part.Reflectance = 0
-                end)
-            end)
-        end
-    end)
-end
-
-----------------------------------------------------------------
 -- 🔊 SOUNDS
 ----------------------------------------------------------------
 local function disableSounds()
@@ -408,40 +341,7 @@ local function disable3DRendering()
 end
 
 ----------------------------------------------------------------
--- � INVISIBLE MODE (EXTREME FALLBACK)
-----------------------------------------------------------------
-local function makeInvisible()
-    if not Settings.ExtremeMode then return end
-    
-    print("👻 Activating Invisible Mode (Extreme)...")
-    
-    -- Hide everything in Workspace
-    for _, part in ipairs(Workspace:GetDescendants()) do
-        if part:IsA("BasePart") then
-            pcall(function()
-                part.Transparency = 1
-                part.CanCollide = false -- Optional: might break physics, use with caution
-                -- part.Size = Vector3.new(0,0,0) -- Too risky
-            end)
-        elseif part:IsA("Decal") or part:IsA("Texture") then
-            pcall(function() part:Destroy() end)
-        end
-    end
-    
-    -- Keep hiding new things
-    Workspace.DescendantAdded:Connect(function(part)
-        if part:IsA("BasePart") then
-            task.defer(function()
-                pcall(function() part.Transparency = 1 end)
-            end)
-        end
-    end)
-    
-    print("   ✅ Invisible Mode Active")
-end
-
-----------------------------------------------------------------
--- �📊 FPS COUNTER
+-- 📊 FPS COUNTER
 ----------------------------------------------------------------
 local function createFPSCounter()
     local screenGui = Instance.new("ScreenGui")
@@ -508,12 +408,10 @@ local function runAllOptimizations()
     disableShadows()
     optimizeTerrain()
     optimizeCharacters()
-    optimizeMaterials()
     disableSounds()
     startGarbageCollection()
     startFPSLimiter()
     disable3DRendering()
-    makeInvisible()
     createFPSCounter()
     
     print("\n" .. string.rep("=", 50))
