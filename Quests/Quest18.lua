@@ -41,7 +41,7 @@ local QUEST_CONFIG = {
     MIN_GOLD_TO_BUY = 10000,
     SHOP_POSITION = Vector3.new(-165, 22, -111.7),
     
-    -- Priority 4: Mining
+    -- Priority 4: Mining (Default: Basalt Rock)
     ROCK_NAME = "Basalt Rock",
     UNDERGROUND_OFFSET = 4,
     LAYING_ANGLE = 90,
@@ -58,6 +58,22 @@ local QUEST_CONFIG = {
         "Island2CaveDeep",
         "Island2CaveLavaClosed",
         "Island2CaveMid",
+    },
+    
+    -- Priority 4.5: Basalt Core (If have Cobalt Pickaxe)
+    BASALT_CORE_CONFIG = {
+        ROCK_NAME = "Basalt Core",
+        MINING_PATHS = {
+            "Island2CaveStart",
+            "Island2CaveDanger1",
+            "Island2CaveDanger2",
+            "Island2CaveDanger3",
+            "Island2CaveDanger4",
+            "Island2CaveDangerClosed",
+            "Island2CaveDeep",
+            "Island2CaveLavaClosed",
+            "Island2CaveMid",
+        },
     },
     
     WAYPOINTS = {
@@ -1045,6 +1061,25 @@ local function isTargetValid(rock)
     return hp > 0
 end
 
+-- Get current rock name and paths based on pickaxe
+local function getCurrentMiningConfig()
+    local pickaxeName = QUEST_CONFIG.TARGET_PICKAXE or "Cobalt Pickaxe"
+    
+    if hasPickaxe(pickaxeName) then
+        -- Have Cobalt Pickaxe → Farm Basalt Core
+        return {
+            ROCK_NAME = QUEST_CONFIG.BASALT_CORE_CONFIG.ROCK_NAME,
+            MINING_PATHS = QUEST_CONFIG.BASALT_CORE_CONFIG.MINING_PATHS,
+        }
+    else
+        -- No Cobalt Pickaxe → Farm Basalt Rock
+        return {
+            ROCK_NAME = QUEST_CONFIG.ROCK_NAME,
+            MINING_PATHS = QUEST_CONFIG.MINING_PATHS,
+        }
+    end
+end
+
 local function findNearestBasaltRock(excludeRock)
     local char = player.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
@@ -1052,16 +1087,21 @@ local function findNearestBasaltRock(excludeRock)
     
     cleanupExpiredBlacklist()
     
+    -- Get current mining config based on pickaxe
+    local miningConfig = getCurrentMiningConfig()
+    local rockName = miningConfig.ROCK_NAME
+    local miningPaths = miningConfig.MINING_PATHS
+    
     local targetRock, minDist = nil, math.huge
     local skippedOccupied = 0
     
-    for _, pathName in ipairs(QUEST_CONFIG.MINING_PATHS) do
+    for _, pathName in ipairs(miningPaths) do
         local folder = MINING_FOLDER_PATH:FindFirstChild(pathName)
         
         if folder then
             for _, child in ipairs(folder:GetChildren()) do
                 if child:IsA("SpawnLocation") or child.Name == "SpawnLocation" then
-                    local rock = child:FindFirstChild(QUEST_CONFIG.ROCK_NAME)
+                    local rock = child:FindFirstChild(rockName)
                     
                     if rock and rock ~= excludeRock and isTargetValid(rock) then
                         if isRockOccupied(rock) then
@@ -1087,7 +1127,7 @@ local function findNearestBasaltRock(excludeRock)
         print(string.format("   ⏭️ Skipped %d occupied rocks (blacklisted)", skippedOccupied))
     end
     
-    return targetRock, minDist
+    return targetRock, minDist, rockName
 end
 
 local function watchRockHP(rock)
@@ -1115,7 +1155,12 @@ end
 -- MINING EXECUTION
 ----------------------------------------------------------------
 local function doMineBasaltRock()
+    -- Check pickaxe and determine rock type
+    local miningConfig = getCurrentMiningConfig()
+    local currentRockName = miningConfig.ROCK_NAME
+    
     print("\n⛏️ Mining Started...")
+    print(string.format("   🎯 Mining: %s", currentRockName))
     print(string.format("   Target: %d rocks", QUEST_CONFIG.MAX_ROCKS_TO_MINE))
     
     IsMiningActive = true
@@ -1123,7 +1168,7 @@ local function doMineBasaltRock()
     local miningCount = 0
     
     print("\n" .. string.rep("=", 50))
-    print("⛏️ Mining Loop...")
+    print(string.format("⛏️ Mining Loop (%s)...", currentRockName))
     print(string.rep("=", 50))
     
     while Quest18Active and miningCount < QUEST_CONFIG.MAX_ROCKS_TO_MINE do
@@ -1146,10 +1191,10 @@ local function doMineBasaltRock()
             cleanupState()
         end
         
-        local targetRock, dist = findNearestBasaltRock(State.currentTarget)
+        local targetRock, dist, rockName = findNearestBasaltRock(State.currentTarget)
         
         if not targetRock then
-            warn("   ❌ No rocks found!")
+            warn(string.format("   ❌ No %s found!", rockName or "rocks"))
             unlockPosition()
             cleanupState()
             task.wait(3)
