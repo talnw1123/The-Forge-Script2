@@ -78,15 +78,22 @@ local Shared = _G.Shared
 ----------------------------------------------------------------
 if CONFIG.LOAD_FPS_BOOSTER then
     print("\n🚀 Loading FPS Booster...")
-    local fpsUrl = CONFIG.GITHUB_BASE_URL .. "Utils/FPSBooster.lua"
+    local fpsUrl = CONFIG.GITHUB_BASE_URL .. "Utils/FPSBooster.lua?t=" .. tostring(tick())
     local fpsSuccess, fpsError = pcall(function()
-        loadstring(game:HttpGet(fpsUrl))()
+        local code = game:HttpGet(fpsUrl)
+        local func, syntaxErr = loadstring(code)
+        if func then
+            func()
+        else
+            error("Syntax error in FPSBooster: " .. tostring(syntaxErr))
+        end
     end)
     
     if fpsSuccess then
         print("✅ FPS Booster loaded!")
     else
         warn("⚠️ Failed to load FPS Booster: " .. tostring(fpsError))
+        warn("   URL: " .. fpsUrl)
     end
 end
 
