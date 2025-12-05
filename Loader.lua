@@ -140,7 +140,7 @@ local function startQuest15Background()
     
     task.spawn(function()
         print("\n🐉 Starting Quest 15 (Auto Claim Index) in BACKGROUND...")
-        print("   ⏰ Running every 10 seconds")
+        print("   ⏰ Running every 2 seconds")
         
         while quest15Running do
             pcall(function()

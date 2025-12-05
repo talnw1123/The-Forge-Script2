@@ -1,4 +1,5 @@
 local Shared = _G.Shared
+print("🔄 Quest 15 Script Loaded (Checking UI...)")
 
 -- QUEST 15: Auto Claim Index (Codex System)
 -- ✅ Scans UI for claimable items (Matches TestClaim.lua logic)
