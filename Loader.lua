@@ -293,7 +293,7 @@ local function runQuestLoop()
         end
         
         -- ============================================
-        -- 🛠️ CUSTOM QUEST LOGIC (13, 17, 18)
+        -- 🛠️ CUSTOM QUEST LOGIC (13, 14, 17, 18)
         -- ไม่เช็ค UI, รันตาม internal logic
         -- ============================================
         if currentQuest == 13 then
@@ -305,6 +305,14 @@ local function runQuestLoop()
             else
                 print("   ⏭️ Quest 13 already ran this session, skipping.")
             end
+            currentQuest = currentQuest + 1
+            task.wait(2)
+            continue
+            
+        elseif currentQuest == 14 then
+            -- Quest 14: Lost Guitar (internal check, uses BardQuest not Introduction{N})
+            print("\n🎸 Loading Quest 14 (Lost Guitar)...")
+            loadQuest(14)
             currentQuest = currentQuest + 1
             task.wait(2)
             continue
@@ -325,7 +333,7 @@ local function runQuestLoop()
         end
         
         -- ============================================
-        -- 📋 STANDARD UI-BASED QUEST LOGIC (1-12, 14-16)
+        -- 📋 STANDARD UI-BASED QUEST LOGIC (1-12, 15-16)
         -- ============================================
         print(string.format("\n🔍 Checking Quest %d...", currentQuest))
         
@@ -425,7 +433,7 @@ end
 -- Wait for UI to load
 print("\n⏳ Waiting for Quest UI to load...")
 local uiReady = false
-for i = 1, 60 do
+for i = 1, 5 do
     local activeNum = getActiveQuestNumber()
     if activeNum then
         uiReady = true
