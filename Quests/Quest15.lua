@@ -90,21 +90,6 @@ local function getPlayerGold()
     return gold
 end
 
-local function shouldClaimIndex()
-    local gold = getPlayerGold()
-    
-    if not gold then
-        return false
-    end
-    
-    if gold < QUEST_CONFIG.MIN_GOLD then
-        print(string.format("   ✅ Gold $%.2f < $%d - Should claim index!", gold, QUEST_CONFIG.MIN_GOLD))
-        return true
-    else
-        print(string.format("   ⏸️  Gold $%.2f >= $%d - No need to claim", gold, QUEST_CONFIG.MIN_GOLD))
-        return false
-    end
-end
 
 ----------------------------------------------------------------
 -- INDEX UI HELPERS

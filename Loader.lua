@@ -293,7 +293,7 @@ local function runQuestLoop()
         end
         
         -- ============================================
-        -- 🛠️ CUSTOM QUEST LOGIC (13, 14, 17, 18)
+        -- 🛠️ CUSTOM QUEST LOGIC (13, 14, 16, 17, 18)
         -- ไม่เช็ค UI, รันตาม internal logic
         -- ============================================
         if currentQuest == 13 then
@@ -317,6 +317,14 @@ local function runQuestLoop()
             task.wait(2)
             continue
             
+        elseif currentQuest == 16 then
+            -- Quest 16: Auto Buy Pickaxe (Gold >= 3340 AND Level < 10, no UI check)
+            print("\n🛒 Loading Quest 16 (Auto Buy Pickaxe)...")
+            loadQuest(16)
+            currentQuest = currentQuest + 1
+            task.wait(2)
+            continue
+            
         elseif currentQuest == 17 then
             -- Quest 17: Auto mining until level 10 (internal check)
             print("\n⛏️ Loading Quest 17 (Auto Mining Until Level 10)...")
@@ -333,7 +341,7 @@ local function runQuestLoop()
         end
         
         -- ============================================
-        -- 📋 STANDARD UI-BASED QUEST LOGIC (1-12, 15-16)
+        -- 📋 STANDARD UI-BASED QUEST LOGIC (1-12, 15)
         -- ============================================
         print(string.format("\n🔍 Checking Quest %d...", currentQuest))
         
