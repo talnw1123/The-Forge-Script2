@@ -167,11 +167,13 @@ local function claimAllIndex()
     -- 1. CLAIM ORES
     local oresPage = pages:FindFirstChild("Ores")
     if oresPage then
-        if DEBUG_MODE then print("\n🪨 CHECKING ORES...") end
+        if DEBUG_MODE then print("\n🪨 CHECKING ORES PAGE...") end
+        local oreCount = 0
         for _, child in ipairs(oresPage:GetChildren()) do
             if string.find(child.Name, "List$") then
                 for _, oreItem in ipairs(child:GetChildren()) do
                     if oreItem:IsA("Frame") or oreItem:IsA("GuiObject") then
+                        oreCount = oreCount + 1
                         local main = oreItem:FindFirstChild("Main")
                         if main then
                             local claim = main:FindFirstChild("Claim")
@@ -187,6 +189,9 @@ local function claimAllIndex()
                 end
             end
         end
+        if DEBUG_MODE then print("   📊 Scanned " .. oreCount .. " ores.") end
+    else
+        if DEBUG_MODE then warn("   ❌ Ores Page NOT found") end
     end
     
     -- 2. CLAIM ENEMIES
@@ -194,11 +199,13 @@ local function claimAllIndex()
     if enemiesPage then
         local scrollFrame = enemiesPage:FindFirstChild("ScrollingFrame")
         if scrollFrame then
-            if DEBUG_MODE then print("\n👹 CHECKING ENEMIES...") end
+            if DEBUG_MODE then print("\n👹 CHECKING ENEMIES PAGE...") end
+            local enemyCount = 0
             for _, child in ipairs(scrollFrame:GetChildren()) do
                 if string.find(child.Name, "List$") then
                     for _, enemyItem in ipairs(child:GetChildren()) do
                         if enemyItem:IsA("Frame") or enemyItem:IsA("GuiObject") then
+                            enemyCount = enemyCount + 1
                             local main = enemyItem:FindFirstChild("Main")
                             if main then
                                 local claim = main:FindFirstChild("Claim")
@@ -214,7 +221,12 @@ local function claimAllIndex()
                     end
                 end
             end
+            if DEBUG_MODE then print("   📊 Scanned " .. enemyCount .. " enemies.") end
+        else
+             if DEBUG_MODE then warn("   ❌ Enemies ScrollingFrame NOT found") end
         end
+    else
+        if DEBUG_MODE then warn("   ❌ Enemies Page NOT found") end
     end
     
     -- 3. CLAIM EQUIPMENTS
@@ -222,11 +234,13 @@ local function claimAllIndex()
     if equipPage then
         local scrollFrame = equipPage:FindFirstChild("ScrollingFrame")
         if scrollFrame then
-            if DEBUG_MODE then print("\n⚔️ CHECKING EQUIPMENTS...") end
+            if DEBUG_MODE then print("\n⚔️ CHECKING EQUIPMENTS PAGE...") end
+            local equipCount = 0
             for _, child in ipairs(scrollFrame:GetChildren()) do
                 if string.find(child.Name, "List$") then
                     for _, equipItem in ipairs(child:GetChildren()) do
                         if equipItem:IsA("Frame") or equipItem:IsA("GuiObject") then
+                            equipCount = equipCount + 1
                             local main = equipItem:FindFirstChild("Main")
                             if main then
                                 local claim = main:FindFirstChild("Claim")
@@ -242,7 +256,12 @@ local function claimAllIndex()
                     end
                 end
             end
+            if DEBUG_MODE then print("   📊 Scanned " .. equipCount .. " equipments.") end
+        else
+            if DEBUG_MODE then warn("   ❌ Equipments ScrollingFrame NOT found") end
         end
+    else
+        if DEBUG_MODE then warn("   ❌ Equipments Page NOT found") end
     end
     
     return totalClaimed > 0

@@ -240,7 +240,7 @@ local loadedQuests = {}
 
 local function loadQuest(questNum)
     local questFile = string.format("Quest%02d.lua", questNum)
-    local questUrl = CONFIG.GITHUB_BASE_URL .. "Quests/" .. questFile
+    local questUrl = CONFIG.GITHUB_BASE_URL .. "Quests/" .. questFile .. "?t=" .. tostring(tick())
     
     print(string.format("\n📥 Loading %s from GitHub...", questFile))
     print("   URL: " .. questUrl)
