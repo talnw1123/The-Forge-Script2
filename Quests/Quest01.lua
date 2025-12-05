@@ -339,7 +339,7 @@ local function Run_Quest1()
     end)
     
     -- Wait for movement to complete
-    local timeout = 15
+    local timeout = 60
     local startTime = tick()
     while not moveComplete and tick() - startTime < timeout do
         task.wait(0.1)

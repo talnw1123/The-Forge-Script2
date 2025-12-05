@@ -24,7 +24,7 @@ local FORGE_CONFIG = {
     ITEM_TYPE = "Weapon",
     FORGE_DELAY = 2,
     FORGE_POSITION = Vector3.new(-192.3, 29.5, 168.1),
-    MOVE_SPEED = 30,  
+    MOVE_SPEED = 25,  
 }
 
 ----------------------------------------------------------------
@@ -503,7 +503,7 @@ local function moveToForge()
         moveComplete = true
     end)
     
-    local timeout = 15
+    local timeout = 60
     local startTime = tick()
     while not moveComplete and tick() - startTime < timeout do
         task.wait(0.1)

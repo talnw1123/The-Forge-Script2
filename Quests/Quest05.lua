@@ -674,7 +674,7 @@ local function doPurchaseBronzePickaxe()
             moveComplete = true
         end)
         
-        local timeout = 15
+        local timeout = 60
         local startTime = tick()
         while not moveComplete and tick() - startTime < timeout do
             task.wait(0.1)
@@ -760,7 +760,7 @@ local function doMineRocks()
             moveStarted = true
         end)
         
-        local timeout = 15
+        local timeout = 60
         local startTime = tick()
         while not moveStarted and tick() - startTime < timeout do
             task.wait(0.1)
@@ -889,7 +889,7 @@ local function doKillZombies()
             moveStarted = true
         end)
         
-        local timeout = 15
+        local timeout = 60
         local startTime = tick()
         while not moveStarted and tick() - startTime < timeout do
             task.wait(0.1)

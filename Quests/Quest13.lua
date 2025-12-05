@@ -436,7 +436,7 @@ local function doAcceptQuest()
         moveComplete = true
     end)
     
-    local timeout = 20
+    local timeout = 60
     local startTime = tick()
     while not moveComplete and tick() - startTime < timeout do
         task.wait(0.1)

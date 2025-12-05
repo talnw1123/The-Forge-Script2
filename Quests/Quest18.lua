@@ -376,7 +376,6 @@ local function smoothMoveTo(targetPos, callback)
     
     local bv = Instance.new("BodyVelocity")
     bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-    bv.Velocity = Vector3.zero
     bv.Parent = hrp
     State.bodyVelocity = bv
     
@@ -396,6 +395,7 @@ local function smoothMoveTo(targetPos, callback)
     State.moveConn = RunService.Heartbeat:Connect(function()
         if reachedTarget then return end
         
+        -- Check if character or BodyVelocity is destroyed
         if not char or not char.Parent or not hrp or not hrp.Parent then
             if State.moveConn then State.moveConn:Disconnect() State.moveConn = nil end
             if bv and bv.Parent then bv:Destroy() end
@@ -403,6 +403,26 @@ local function smoothMoveTo(targetPos, callback)
             State.bodyVelocity = nil
             State.bodyGyro = nil
             return
+        end
+        
+        -- Check if BodyVelocity was destroyed by game/other script
+        if not bv or not bv.Parent then
+            warn("   ⚠️ BodyVelocity destroyed! Recreating...")
+            
+            -- Recreate BodyVelocity
+            bv = Instance.new("BodyVelocity")
+            bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bv.Parent = hrp
+            State.bodyVelocity = bv
+        end
+        
+        if not bg or not bg.Parent then
+            bg = Instance.new("BodyGyro")
+            bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+            bg.P = 10000
+            bg.D = 500
+            bg.Parent = hrp
+            State.bodyGyro = bg
         end
         
         local currentPos = hrp.Position
@@ -924,7 +944,7 @@ local function transitionToNewTarget(newTargetPos)
         moveComplete = true
     end)
     
-    local timeout = 15
+    local timeout = 60
     local startTime = tick()
     while not moveComplete and tick() - startTime < timeout do
         task.wait(0.1)
@@ -1158,16 +1178,24 @@ local function doMineBasaltRock()
         
         watchRockHP(targetRock)
         
-        if State.positionLockConn and previousTarget ~= targetRock then
+        -- If we're locked to a DIFFERENT target, use smooth transition
+        -- Otherwise, always use smoothMoveTo (even for same target after respawn)
+        if State.positionLockConn and previousTarget and previousTarget ~= targetRock then
+            print("   🔄 Transition to new target...")
             transitionToNewTarget(targetPos)
         else
+            -- Unlock any existing position lock first
+            if State.positionLockConn then
+                unlockPosition()
+            end
+            
             local moveStarted = false
             smoothMoveTo(targetPos, function()
                 lockPositionLayingDown(targetPos)
                 moveStarted = true
             end)
             
-            local timeout = 15
+            local timeout = 60
             local startTime = tick()
             while not moveStarted and tick() - startTime < timeout do
                 task.wait(0.1)

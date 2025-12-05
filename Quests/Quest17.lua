@@ -520,7 +520,7 @@ local function transitionToNewTarget(newTargetPos)
         moveComplete = true
     end)
     
-    local timeout = 15
+    local timeout = 60
     local startTime = tick()
     while not moveComplete and tick() - startTime < timeout do
         task.wait(0.1)
@@ -616,7 +616,7 @@ local function doMineUntilLevel10()
                 moveStarted = true
             end)
             
-            local timeout = 15
+            local timeout = 60
             local startTime = tick()
             while not moveStarted and tick() - startTime < timeout do
                 task.wait(0.1)

@@ -513,7 +513,7 @@ local function moveToStartPosition()
             moveComplete = true
         end)
         
-        local timeout = 15
+        local timeout = 60
         local startTime = tick()
         while not moveComplete and tick() - startTime < timeout do
             if not hrp or not hrp.Parent then break end
@@ -696,7 +696,7 @@ local function doMinePebbles()
             moveStarted = true
         end)
         
-        local timeout = 15
+        local timeout = 60
         local startTime = tick()
         while not moveStarted and (tick() - startTime) < timeout do
             task.wait(0.1)

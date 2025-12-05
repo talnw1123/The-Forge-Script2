@@ -439,7 +439,7 @@ local function doCollectGuitar()
         moveComplete = true
     end)
     
-    local timeout = 30
+    local timeout = 60
     local startTime = tick()
     while not moveComplete and tick() - startTime < timeout do
         task.wait(0.1)
@@ -488,7 +488,7 @@ local function doReturnGuitar()
         moveComplete = true
     end)
     
-    local timeout = 30
+    local timeout = 60
     local startTime = tick()
     while not moveComplete and tick() - startTime < timeout do
         task.wait(0.1)

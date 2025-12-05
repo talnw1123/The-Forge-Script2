@@ -38,7 +38,7 @@ local QUEST_CONFIG = {
     UNDERGROUND_OFFSET = 4,
     MIN_ORES_FOR_FORGE = 10,
     LAYING_ANGLE = 90,
-    MOVE_SPEED = 30,  
+    MOVE_SPEED = 25,  
     SELL_NPC_NAME = "Marbles",
     SELL_NPC_POSITION = Vector3.new(49.84, 29.17, 85.84),
     PRIORITY_ORDER = {"Purchase", "Kill", "Mine", "Forge"},
@@ -1166,7 +1166,7 @@ local function moveToForge()
         moveComplete = true
     end)
 
-    local timeout = 15
+    local timeout = 60
     local startTime = tick()
     while not moveComplete and tick() - startTime < timeout do
         task.wait(0.1)
@@ -1244,7 +1244,7 @@ local function doPurchaseIronPickaxe()
             moveComplete = true
         end)
         
-        local timeout = 15
+        local timeout = 60
         local startTime = tick()
         while not moveComplete and tick() - startTime < timeout do
             task.wait(0.1)
@@ -1324,7 +1324,7 @@ local function doMinePebble()
             moveStarted = true
         end)
         
-        local timeout = 15
+        local timeout = 60
         local startTime = tick()
         while not moveStarted and tick() - startTime < timeout do
             task.wait(0.1)
@@ -1454,7 +1454,7 @@ local function doKillZombies()
             moveStarted = true
         end)
         
-        local timeout = 15
+        local timeout = 60
         local startTime = tick()
         while not moveStarted and tick() - startTime < timeout do
             task.wait(0.1)
