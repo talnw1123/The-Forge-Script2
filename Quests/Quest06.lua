@@ -147,14 +147,39 @@ local function smoothMoveTo(targetPos, callback)
     
     print(string.format("   🚀 Moving to (%.1f, %.1f, %.1f)...", targetPos.X, targetPos.Y, targetPos.Z))
     
+    local reachedTarget = false
+    
     State.moveConn = RunService.Heartbeat:Connect(function()
+        if reachedTarget then return end
+        
+        -- Check if character or BodyVelocity is destroyed
         if not char or not char.Parent or not hrp or not hrp.Parent then
             if State.moveConn then State.moveConn:Disconnect() State.moveConn = nil end
-            if bv then bv:Destroy() end
-            if bg then bg:Destroy() end
+            if bv and bv.Parent then bv:Destroy() end
+            if bg and bg.Parent then bg:Destroy() end
             State.bodyVelocity = nil
             State.bodyGyro = nil
             return
+        end
+        
+        -- Check if BodyVelocity was destroyed by game/other script
+        if not bv or not bv.Parent then
+            warn("   ⚠️ BodyVelocity destroyed! Recreating...")
+            
+            -- Recreate BodyVelocity
+            bv = Instance.new("BodyVelocity")
+            bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bv.Parent = hrp
+            State.bodyVelocity = bv
+        end
+        
+        if not bg or not bg.Parent then
+            bg = Instance.new("BodyGyro")
+            bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+            bg.P = 10000
+            bg.D = 500
+            bg.Parent = hrp
+            State.bodyGyro = bg
         end
         
         local currentPos = hrp.Position
@@ -164,11 +189,16 @@ local function smoothMoveTo(targetPos, callback)
         if distance < 2 then
             print("   ✅ Reached target!")
             
+            reachedTarget = true
+            
             bv.Velocity = Vector3.zero
+            hrp.Velocity = Vector3.zero
+            hrp.AssemblyLinearVelocity = Vector3.zero
+            
             task.wait(0.1)
             
-            bv:Destroy()
-            bg:Destroy()
+            if bv and bv.Parent then bv:Destroy() end
+            if bg and bg.Parent then bg:Destroy() end
             State.bodyVelocity = nil
             State.bodyGyro = nil
             
@@ -511,6 +541,9 @@ local function moveToForge()
     print(string.format("   🚶 Moving to Forge at (%.1f, %.1f, %.1f) (%.1f studs away)...", 
         forgePos.X, forgePos.Y, forgePos.Z, currentDist))
     
+    -- 🆕 Unlock position before moving
+    Shared.SoftUnlockPosition()
+    
     -- Use smoothMoveTo with noclip + lock position
     local moveComplete = false
     smoothMoveTo(forgePos, function()
@@ -522,6 +555,14 @@ local function moveToForge()
     local startTime = tick()
     while not moveComplete and tick() - startTime < timeout do
         task.wait(0.1)
+    end
+    
+    if not moveComplete then
+        warn("   ⚠️ Move timed out! Retrying...")
+        if State.moveConn then State.moveConn:Disconnect() State.moveConn = nil end
+        if State.bodyVelocity then State.bodyVelocity:Destroy() State.bodyVelocity = nil end
+        if State.bodyGyro then State.bodyGyro:Destroy() State.bodyGyro = nil end
+        return false
     end
     
     -- Cleanup movement
@@ -582,7 +623,13 @@ local function doForgeLoop()
     
     setupForgeHook()
     
-    moveToForge()
+    setupForgeHook()
+    
+    -- 🆕 Retry movement until successful
+    while not moveToForge() do
+        warn("   ⚠️ Failed to reach Forge, retrying in 2s...")
+        task.wait(2)
+    end
     
     local forgeCount = 0
     local consecutiveFailures = 0
