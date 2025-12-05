@@ -1727,6 +1727,12 @@ while isQuest7StillActive() and attempt < maxAttempts do
                 doPurchaseIronPickaxe()
                 didSomething = true
                 task.wait(2)
+                
+                -- 🆕 Re-check if Purchase is complete after running
+                if isObjectiveComplete(obj.frame) then
+                    purchasePending = false
+                    print("   ✅ Purchase objective complete! Continuing to other objectives...")
+                end
             elseif obj.type == "Kill" then
                 doKillZombies()
                 didSomething = true
