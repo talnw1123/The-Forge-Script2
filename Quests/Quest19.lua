@@ -1517,7 +1517,7 @@ local function doMineBasaltRock()
     print(string.format("⛏️ Mining Loop (%s)...", currentRockName))
     print(string.rep("=", 50))
     
-    while Quest18Active and miningCount < QUEST_CONFIG.MAX_ROCKS_TO_MINE do
+    while Quest19Active and miningCount < QUEST_CONFIG.MAX_ROCKS_TO_MINE do
         if State.isPaused then
             print("   ⏸️  Paused (Auto Buy running)...")
             task.wait(2)
