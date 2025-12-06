@@ -126,61 +126,139 @@ local function areAllObjectivesComplete()
 end
 
 ----------------------------------------------------------------
--- EQUIPMENT HELPERS
+-- UI CONTROLLER (from Quest04)
 ----------------------------------------------------------------
-local function getPlayerEquipments()
-    if not PlayerController or not PlayerController.Replica then
-        warn("   ⚠️ Replica not available!")
-        return {}
+local UIController = nil
+pcall(function()
+    for _, v in pairs(getgc(true)) do
+        if type(v) == "table" then
+            if rawget(v, "Open") and rawget(v, "Close") and rawget(v, "Modules") then
+                UIController = v
+                break
+            end
+        end
+    end
+end)
+
+if UIController then print("✅ UIController Ready!") else warn("⚠️ UIController not found") end
+
+local function openToolsMenu()
+    if not UIController then return false end
+    
+    if UIController.Modules["Menu"] then
+        pcall(function() UIController:Open("Menu") end)
+        task.wait(0.5)
+        
+        local menuModule = UIController.Modules["Menu"]
+        if menuModule.OpenTab then
+            pcall(function() menuModule:OpenTab("Tools") end)
+        elseif menuModule.SwitchTab then
+            pcall(function() menuModule:SwitchTab("Tools") end)
+        end
+        
+        task.wait(0.5)
+        return true
     end
     
-    local replica = PlayerController.Replica
+    return false
+end
+
+local function closeToolsMenu()
+    if UIController and UIController.Close then
+        pcall(function() UIController:Close("Menu") end)
+        task.wait(0.3)
+    end
+end
+
+----------------------------------------------------------------
+-- FIND EQUIPPED WEAPON (via UI "Unequip" text)
+----------------------------------------------------------------
+local function findEquippedWeapon()
+    print("   📂 Opening Tools menu to find equipped weapon...")
+    openToolsMenu()
+    task.wait(0.5)
     
-    if not replica.Data or not replica.Data.Inventory or not replica.Data.Inventory.Equipments then
-        warn("   ⚠️ Equipments not found in Replica!")
-        return {}
+    local menuGui = playerGui:FindFirstChild("Menu")
+    if not menuGui then 
+        warn("   ❌ Menu GUI not found!")
+        closeToolsMenu()
+        return nil, "Menu GUI not found"
     end
     
-    local equipments = replica.Data.Inventory.Equipments
-    local items = {}
+    local toolsFrame = menuGui:FindFirstChild("Frame") 
+                    and menuGui.Frame:FindFirstChild("Frame") 
+                    and menuGui.Frame.Frame:FindFirstChild("Menus") 
+                    and menuGui.Frame.Frame.Menus:FindFirstChild("Tools")
+                    and menuGui.Frame.Frame.Menus.Tools:FindFirstChild("Frame")
     
-    for id, item in pairs(equipments) do
-        if type(item) == "table" and item.Type and item.GUID then
-            -- No Pickaxe
-            if not string.find(item.Type, "Pickaxe") then
-                table.insert(items, {
-                    ID = id,
-                    GUID = item.GUID,
-                    Type = item.Type,
-                    Name = item.Name or item.Type,
-                    Upgrade = item.Upgrade or 0,
-                    Quality = item.Quality or 0,
-                    Dmg = item.Dmg or 0,
-                })
+    if not toolsFrame then 
+        warn("   ❌ Tools Frame not found!")
+        closeToolsMenu()
+        return nil, "Tools Frame not found"
+    end
+    
+    print("   🔍 Scanning for equipped weapon (Unequip button)...")
+    
+    local equippedWeapon = nil
+    
+    -- Scan all items in Tools frame
+    for _, weaponFrame in ipairs(toolsFrame:GetChildren()) do
+        if weaponFrame:IsA("Frame") then
+            local equipButton = weaponFrame:FindFirstChild("Equip")
+            if equipButton then
+                local textLabel = equipButton:FindFirstChild("TextLabel")
+                if textLabel and textLabel:IsA("TextLabel") then
+                    -- Check if text is "Unequip" = currently equipped
+                    if textLabel.Text == "Unequip" then
+                        local guid = weaponFrame.Name
+                        
+                        -- Skip Pickaxe
+                        local itemName = weaponFrame:FindFirstChild("TextLabel")
+                        local itemType = itemName and itemName.Text or ""
+                        
+                        if string.find(itemType, "Pickaxe") then
+                            print(string.format("      ⏭️  Skipping Pickaxe: %s", itemType))
+                            continue
+                        end
+                        
+                        -- Get Upgrade level from UI
+                        local upgradeLevel = 0
+                        local stats = weaponFrame:FindFirstChild("Stats")
+                        if stats then
+                            -- Try to find upgrade text
+                            for _, stat in ipairs(stats:GetChildren()) do
+                                if stat:IsA("TextLabel") then
+                                    local upgradeMatch = string.match(stat.Text, "%+(%d+)")
+                                    if upgradeMatch then
+                                        upgradeLevel = tonumber(upgradeMatch) or 0
+                                    end
+                                end
+                            end
+                        end
+                        
+                        equippedWeapon = {
+                            GUID = guid,
+                            Name = itemType,
+                            Type = itemType,
+                            Upgrade = upgradeLevel,
+                        }
+                        
+                        print(string.format("      ✅ Found equipped weapon: %s (GUID: %s, +%d)", 
+                            itemType, guid, upgradeLevel))
+                        break
+                    end
+                end
             end
         end
     end
     
-    return items
-end
-
-local function findLowestUpgradeItem()
-    local items = getPlayerEquipments()
+    closeToolsMenu()
     
-    if #items == 0 then
-        return nil, "No enhanceable items found!"
+    if not equippedWeapon then
+        return nil, "No equipped weapon found (no Unequip button)"
     end
     
-    -- Sort by Upgrade (Ascending) -> Dmg (Ascending)
-    table.sort(items, function(a, b)
-        if a.Upgrade ~= b.Upgrade then
-            return a.Upgrade < b.Upgrade
-        else
-            return a.Dmg < b.Dmg
-        end
-    end)
-    
-    return items[1], nil
+    return equippedWeapon, nil
 end
 
 local function getItemCurrentUpgrade(guid)
@@ -224,11 +302,9 @@ local function enhanceItem(guid)
 end
 
 local function printItemInfo(item)
-    print(string.format("   🎯 Selected Item: %s", item.Name))
-    print(string.format("      - Type: %s", item.Type))
-    print(string.format("      - Current Upgrade: +%d", item.Upgrade))
-    print(string.format("      - Dmg: %.1f", item.Dmg))
-    print(string.format("      - Quality: %.1f", item.Quality))
+    print(string.format("   🎯 Selected Item: %s", item.Name or item.Type))
+    print(string.format("      - Type: %s", item.Type or "Unknown"))
+    print(string.format("      - Current Upgrade: +%d", item.Upgrade or 0))
     print(string.format("      - GUID: %s", item.GUID))
 end
 
@@ -236,9 +312,10 @@ end
 -- MAIN QUEST EXECUTION
 ----------------------------------------------------------------
 local function doEnhanceToPlus3()
-    print("⚡ Objective: Enhance Item to +3...")
+    print("⚡ Objective: Enhance EQUIPPED weapon to +3...")
     
-    local targetItem, errorMsg = findLowestUpgradeItem()
+    -- Find currently equipped weapon (not lowest upgrade)
+    local targetItem, errorMsg = findEquippedWeapon()
     
     if not targetItem then
         warn("   ❌ ERROR: " .. errorMsg)

@@ -321,27 +321,60 @@ end
 
 ----------------------------------------------------------------
 -- FORCE COMPLETE (For recovery from disconnected dialogue)
+-- Uses body move to fixed NPC position
 ----------------------------------------------------------------
+local NPC_POSITION = Vector3.new(-200.07, 30.37, 158.41)
+
 local function forceCompleteQuest1()
     print("\n🔧 Force completing Quest 1...")
+    print(string.format("   🎯 Moving to NPC position (%.1f, %.1f, %.1f)...", 
+        NPC_POSITION.X, NPC_POSITION.Y, NPC_POSITION.Z))
     
-    local npcModel = getNpcModel(NPC_NAME)
-    if not npcModel then
-        warn("❌ Cannot force complete - NPC not found")
-        return false
+    -- 1. Enable noclip & Move to NPC position
+    enableNoclip()
+    
+    local moveComplete = false
+    smoothMoveTo(NPC_POSITION, function()
+        moveComplete = true
+    end)
+    
+    -- Wait for movement (max 30 seconds)
+    local timeout = 30
+    local startTime = tick()
+    while not moveComplete and tick() - startTime < timeout do
+        task.wait(0.1)
     end
     
-    -- 1. Start dialogue
-    print("   📡 Starting dialogue...")
-    invokeDialogueStart(npcModel)
+    -- Cleanup movement
+    cleanupState()
+    disableNoclip()
+    
+    if not moveComplete then
+        warn("   ⚠️ Movement timeout, but trying remote anyway...")
+    else
+        print("   ✅ Arrived at NPC position!")
+    end
+    
     task.wait(0.5)
     
-    -- 2. Send command immediately
+    -- 2. Try to find NPC and start dialogue
+    local npcModel = getNpcModel(NPC_NAME)
+    if npcModel then
+        print("   📡 Found NPC, starting dialogue...")
+        invokeDialogueStart(npcModel)
+        task.wait(0.5)
+    else
+        print("   ⚠️ NPC not found at position, trying remote directly...")
+    end
+    
+    -- 3. Send quest accept command
     print("   📡 Sending quest accept command...")
-    invokeRunCommand(QUEST_OPTION_ARG)
+    pcall(function()
+        invokeRunCommand(QUEST_OPTION_ARG)
+    end)
     task.wait(0.5)
     
-    -- 3. Clean up
+    -- 4. Cleanup UI
     ForceEndDialogueAndRestore()
     
     print("   ✅ Force complete done!")
