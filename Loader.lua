@@ -74,6 +74,14 @@ end
 local Shared = _G.Shared
 
 ----------------------------------------------------------------
+-- 🔍 QUEST DETECTION SYSTEM
+----------------------------------------------------------------
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+
+----------------------------------------------------------------
 -- 🚀 LOAD FPS BOOSTER
 ----------------------------------------------------------------
 if CONFIG.LOAD_FPS_BOOSTER then
@@ -157,8 +165,9 @@ local function getPlayerLevel()
     return level
 end
 
+
 ----------------------------------------------------------------
--- � QUEST LIST EMPTY CHECK
+-- 📋 QUEST LIST EMPTY CHECK
 ----------------------------------------------------------------
 local function isQuestListEmpty()
     local gui = player:FindFirstChild("PlayerGui")
@@ -180,13 +189,6 @@ local function isQuestListEmpty()
     
     return true  -- Only UIListLayout and UIPadding = empty!
 end
-
-----------------------------------------------------------------
--- �🔍 QUEST DETECTION SYSTEM
-----------------------------------------------------------------
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
 
 local function getActiveQuestNumber()
     local gui = player:FindFirstChild("PlayerGui")
