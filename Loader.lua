@@ -270,8 +270,13 @@ local function loadQuest(questNum)
     local questFile = string.format("Quest%02d.lua", questNum)
     local questUrl = CONFIG.GITHUB_BASE_URL .. "Quests/" .. questFile .. "?t=" .. tostring(tick())
     
-    print(string.format("\n📥 Loading %s from GitHub...", questFile))
-    print("   URL: " .. questUrl)
+    -- Skip verbose logging for Quest 15 (runs in background frequently)
+    local showLogs = (questNum ~= 15)
+    
+    if showLogs then
+        print(string.format("\n📥 Loading %s from GitHub...", questFile))
+        print("   URL: " .. questUrl)
+    end
     
     local success, result = pcall(function()
         local code = game:HttpGet(questUrl)
@@ -284,7 +289,9 @@ local function loadQuest(questNum)
     end)
     
     if success then
-        print(string.format("✅ %s loaded successfully!", questFile))
+        if showLogs then
+            print(string.format("✅ %s loaded successfully!", questFile))
+        end
         loadedQuests[questNum] = true
         return true
     else
@@ -306,9 +313,7 @@ local function startQuest15Background()
     quest15Running = true
     
     task.spawn(function()
-        print("\n🐉 Starting Quest 15 (Auto Claim Index) in BACKGROUND...")
-        print("   ⏰ Running every 2 seconds")
-        
+        -- Silent startup (no spam in console)
         while quest15Running do
             pcall(function()
                 loadQuest(15)
@@ -392,7 +397,7 @@ local function runQuestLoop()
             
         elseif currentQuest == 15 then
             -- Quest 15: Skip UI check, already running in background
-            print("\n⏭️ Quest 15 already running in background, skip to Quest 16...")
+            -- (Silent skip - no console spam)
             currentQuest = currentQuest + 1
             task.wait(1)
             continue
@@ -505,7 +510,6 @@ local function runQuestLoop()
         print("\n" .. string.rep("=", 60))
         print("🌋 QUEST 18 - INFINITE FARMING MODE")
         print("   ⚠️ Will NOT check Quest 1-17 anymore")
-        print("   🐉 Quest 15 running in background")
         print(string.rep("=", 60))
         
         local loopCount = 0
