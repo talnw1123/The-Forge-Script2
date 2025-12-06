@@ -83,7 +83,7 @@ local QUEST_CONFIG = {
     
     -- Tier 3: Basalt Vein (If have Magma Pickaxe)
     BASALT_VEIN_CONFIG = {
-        ROCK_NAME = "Basalt Vein",
+        ROCK_NAME = "Basalt Core",
         MINING_PATHS = {
             "Island2CaveStart",
             "Island2CaveDanger1",
