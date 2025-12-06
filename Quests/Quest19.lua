@@ -1402,9 +1402,9 @@ local function getCurrentMiningConfig()
     local magmaPickaxe = QUEST_CONFIG.MAGMA_PICKAXE_CONFIG and QUEST_CONFIG.MAGMA_PICKAXE_CONFIG.TARGET_PICKAXE or "Magma Pickaxe"
     local cobaltPickaxe = QUEST_CONFIG.TARGET_PICKAXE or "Cobalt Pickaxe"
     
-    -- Tier 3: Magma Pickaxe → Basalt Vein
+    -- Tier 3: Magma Pickaxe → Basalt Core (User requested due to crowding at Vein)
     if hasPickaxe(magmaPickaxe) then
-        print("   🔥 Have Magma Pickaxe → Mining Basalt Vein")
+        print("   🔥 Have Magma Pickaxe → Mining Basalt Core (Crowded Vein)")
         return {
             ROCK_NAME = QUEST_CONFIG.BASALT_CORE_CONFIG.ROCK_NAME,
             MINING_PATHS = QUEST_CONFIG.BASALT_CORE_CONFIG.MINING_PATHS,
