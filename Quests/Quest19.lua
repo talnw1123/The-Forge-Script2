@@ -1128,6 +1128,126 @@ local function startMagmaBuyTask()
 end
 
 ----------------------------------------------------------------
+-- STASH CAPACITY CHECK SYSTEM
+----------------------------------------------------------------
+local function getStashCapacity()
+    -- Path: PlayerGui.Menu.Frame.Frame.Menus.Stash.Capacity.Text
+    local menu = playerGui:FindFirstChild("Menu")
+    if not menu then return 0, 0 end
+
+    local capacityLabel = menu:FindFirstChild("Frame") 
+                      and menu.Frame:FindFirstChild("Frame") 
+                      and menu.Frame.Frame:FindFirstChild("Menus") 
+                      and menu.Frame.Frame.Menus:FindFirstChild("Stash") 
+                      and menu.Frame.Frame.Menus.Stash:FindFirstChild("Capacity")
+    
+    if not capacityLabel or not capacityLabel:IsA("TextLabel") then
+        return 0, 0
+    end
+
+    -- Format: "Stash Capacity: 145/218"
+    local text = capacityLabel.Text
+    local current, max = string.match(text, "(%d+)/(%d+)")
+    
+    return tonumber(current) or 0, tonumber(max) or 0
+end
+
+local function executeFullStashRoutine()
+    print("\n🚨 STASH ACTION REQUIRED: Stash Full!")
+    
+    -- 1. Pause everything
+    local wasMining = IsMiningActive
+    if wasMining then
+        State.isPaused = true
+        print("   ⏸️  Pausing mining (Stash Full)...")
+        
+        if ToolController then
+            ToolController.holdingM1 = false
+        end
+        
+        unlockPosition()
+        task.wait(1)
+    end
+    
+    -- 2. Move to Shop
+    local shopPos = QUEST_CONFIG.STASH_CHECK_CONFIG.SHOP_POSITION
+    print(string.format("   🚶 Walking to Shop for stash clear (%.1f, %.1f, %.1f)...",
+        shopPos.X, shopPos.Y, shopPos.Z))
+        
+    local done = false
+    smoothMoveTo(shopPos, function() done = true end)
+    
+    local t0 = tick()
+    while not done and tick() - t0 < 45 do
+        task.wait(0.1)
+    end
+    
+    if not done then
+        warn("   ❌ Failed to reach shop (Stash Routine)")
+        if wasMining then State.isPaused = false end
+        return
+    end
+    
+    print("   ✅ Arrived at Shop!")
+    task.wait(1)
+    
+    -- 3. Talk to NPC
+    local npcName = QUEST_CONFIG.STASH_CHECK_CONFIG.NPC_NAME
+    local npc = Workspace:WaitForChild("Proximity"):FindFirstChild(npcName)
+    
+    if npc and ProximityDialogueRF then
+        print(string.format("   💬 Talking to %s...", npcName))
+        pcall(function()
+            ProximityDialogueRF:InvokeServer(npc)
+        end)
+        task.wait(2)
+        print("   🚪 Closing dialog...")
+        ForceEndDialogueAndRestore()
+    else
+        warn("   ❌ NPC not found for stash clear!")
+    end
+    
+    task.wait(1)
+    
+    -- 4. Resume
+    if wasMining then
+        print("   ▶️  Resuming mining after Stash Check...")
+        State.isPaused = false
+    end
+end
+
+local function startStashCheckTask()
+    local config = QUEST_CONFIG.STASH_CHECK_CONFIG
+    if not config or not config.ENABLED then return end
+    
+    print("🤖 Stash Capacity Check Task Started!")
+    
+    task.spawn(function()
+        local lastFullActionTime = 0
+        
+        while Quest19Active do
+            task.wait(config.CHECK_INTERVAL)
+            
+            if State.isPaused then continue end
+            
+            -- Check cooldown
+            if tick() - lastFullActionTime < config.FULL_COOLDOWN then
+                continue
+            end
+            
+            local current, max = getStashCapacity()
+            
+            if max > 0 and current >= max then
+                print(string.format("   ⚠️ Stash Full Detected: %d/%d", current, max))
+                
+                lastFullActionTime = tick()
+                executeFullStashRoutine()
+            end
+        end
+    end)
+end
+
+----------------------------------------------------------------
 -- ISLAND DETECTION
 ----------------------------------------------------------------
 local function getCurrentIsland()
@@ -1734,6 +1854,7 @@ print("\n🔍 Priority 2: Starting Background Tasks...")
 startAutoSellTask()
 startAutoBuyTask()
 startMagmaBuyTask()
+startStashCheckTask()
 
 -- Priority 3: Mining
 print("\n🔍 Priority 3: Starting Mining...")

@@ -332,6 +332,7 @@ local function enableBlackScreen()
     screenGui.Name = "BlackScreenOverlay"
     screenGui.IgnoreGuiInset = true
     screenGui.DisplayOrder = 1000
+    screenGui.ResetOnSpawn = false  -- ป้องกันไม่ให้ถูกลบเมื่อ Respawn
     screenGui.Parent = player:WaitForChild("PlayerGui")
     
     local frame = Instance.new("Frame")
@@ -401,7 +402,7 @@ local function enableBlackScreen()
     BlackScreenOverlay = screenGui
 end
 
--- Toggle Black Screen Function
+-- Toggle Black Screen Function (F2)
 local function toggleBlackScreen()
     if not BlackScreenOverlay then
         print("⚠️ Black Screen not initialized!")
@@ -418,14 +419,33 @@ local function toggleBlackScreen()
     end
 end
 
--- Global function for external access
-_G.ToggleBlackScreen = toggleBlackScreen
+-- Toggle 3D Rendering Function (F1)
+local Rendering3DEnabled = false  -- เริ่มต้นปิด (เพราะ Settings.Disable3DRendering = true)
+local function toggle3DRendering()
+    Rendering3DEnabled = not Rendering3DEnabled
+    
+    pcall(function()
+        RunService:Set3dRenderingEnabled(Rendering3DEnabled)
+    end)
+    
+    if Rendering3DEnabled then
+        print("🎮 3D Rendering: ON")
+    else
+        print("�️ 3D Rendering: OFF")
+    end
+end
 
--- F2 Keybind
+-- Global functions for external access
+_G.ToggleBlackScreen = toggleBlackScreen
+_G.Toggle3DRendering = toggle3DRendering
+
+-- Keybinds: F1 = 3D Rendering, F2 = Black Screen
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     
-    if input.KeyCode == Enum.KeyCode.F2 then
+    if input.KeyCode == Enum.KeyCode.F1 then
+        toggle3DRendering()
+    elseif input.KeyCode == Enum.KeyCode.F2 then
         toggleBlackScreen()
     end
 end)
