@@ -350,12 +350,22 @@ local function enableBlackScreen()
     local text = Instance.new("TextLabel")
     text.Text = "🌑 AFK MODE: SAVING RESOURCES 🌑"
     text.Size = UDim2.new(1, 0, 0, 50)
-    text.Position = UDim2.new(0, 0, 0.5, -25)
+    text.Position = UDim2.new(0, 0, 0.4, -25)
     text.BackgroundTransparency = 1
     text.TextColor3 = Color3.new(1, 1, 1)
     text.Font = Enum.Font.RobotoMono
     text.TextSize = 24
     text.Parent = screenGui
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Text = player.Name or "Unknown"
+    nameLabel.Size = UDim2.new(1, 0, 0, 60)
+    nameLabel.Position = UDim2.new(0, 0, 0.5, 10)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextColor3 = Color3.fromRGB(0, 255, 255) -- Cyan
+    nameLabel.Font = Enum.Font.FredokaOne
+    nameLabel.TextSize = 48
+    nameLabel.Parent = screenGui
     
     print("   ✅ Black Screen Overlay Active")
 end
@@ -374,13 +384,6 @@ local function disable3DRendering()
         print("   ✅ Set3dRenderingEnabled(false) Success!")
     else
         print("   ⚠️ Set3dRenderingEnabled not supported, using fallback...")
-        
-        -- Method 2: Camera trick
-        local cam = Workspace.CurrentCamera
-        if cam then
-            -- Note: We can't destroy camera, but we can stop it from rendering much
-            -- Actually, just the overlay is often enough if 3D rendering API fails.
-        end
     end
 end
 
@@ -427,6 +430,63 @@ local function createFPSCounter()
                 fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
             else
                 fpsLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+            end
+            
+            frameCount = 0
+            lastTime = currentTime
+        end
+    end)
+    
+    print("📊 FPS Counter created!")
+end
+
+----------------------------------------------------------------
+-- 🚀 RUN ALL OPTIMIZATIONS
+----------------------------------------------------------------
+local function runAllOptimizations()
+    print("\n" .. string.rep("=", 50))
+    print("🚀 FPS BOOSTER - Starting Optimizations")
+    print(string.rep("=", 50) .. "\n")
+    
+    setGraphicsQuality()
+    disableLightingEffects()
+    disableParticles()
+    disableDecalsAndTextures()
+    disableShadows()
+    optimizeTerrain()
+    optimizeCharacters()
+    disableSounds()
+    startGarbageCollection()
+    startFPSLimiter()
+    startFPSLimiter()
+    enableBlackScreen()
+    disable3DRendering()
+    createFPSCounter()
+    
+    print("\n" .. string.rep("=", 50))
+    print("✅ FPS BOOSTER - All Optimizations Applied!")
+    print(string.rep("=", 50) .. "\n")
+end
+
+-- RUN
+runAllOptimizations()
+
+-- Re-apply when new objects are added
+Workspace.DescendantAdded:Connect(function(desc)
+    task.defer(function()
+        pcall(function()
+            if Settings.DisableParticles then
+                if desc:IsA("ParticleEmitter") or desc:IsA("Fire") or desc:IsA("Smoke") then
+                    desc.Enabled = false
+                end
+            end
+            if Settings.DisableShadows and desc:IsA("BasePart") then
+                desc.CastShadow = false
+            end
+        end)
+    end)
+end)
+          fpsLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
             end
             
             frameCount = 0
