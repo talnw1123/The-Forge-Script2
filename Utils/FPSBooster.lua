@@ -344,7 +344,8 @@ local function enableBlackScreen()
     text.TextColor3 = Color3.new(1, 1, 1)
     text.Font = Enum.Font.RobotoMono
     text.TextSize = 24
-    text.Parent = screenGui
+    text.ZIndex = 1001
+    text.Parent = frame
     
     -- ชื่อตัวละครตัวใหญ่
     local nameLabel = Instance.new("TextLabel")
@@ -355,7 +356,39 @@ local function enableBlackScreen()
     nameLabel.TextColor3 = Color3.fromRGB(0, 255, 255)
     nameLabel.Font = Enum.Font.FredokaOne
     nameLabel.TextSize = 64
-    nameLabel.Parent = screenGui
+    nameLabel.ZIndex = 1001
+    nameLabel.Parent = frame
+    
+    -- แสดง Gold
+    local goldLabel = Instance.new("TextLabel")
+    goldLabel.Text = "💰 Gold: Loading..."
+    goldLabel.Size = UDim2.new(1, 0, 0, 60)
+    goldLabel.Position = UDim2.new(0, 0, 0.6, 20)
+    goldLabel.BackgroundTransparency = 1
+    goldLabel.TextColor3 = Color3.fromRGB(255, 215, 0) -- Gold color
+    goldLabel.Font = Enum.Font.FredokaOne
+    goldLabel.TextSize = 48
+    goldLabel.ZIndex = 1001
+    goldLabel.Parent = frame
+    
+    -- อัปเดต Gold ทุก 2 วินาที
+    task.spawn(function()
+        while screenGui and screenGui.Parent do
+            local goldUI = player:FindFirstChild("PlayerGui")
+                          and player.PlayerGui:FindFirstChild("Main")
+                          and player.PlayerGui.Main:FindFirstChild("Screen")
+                          and player.PlayerGui.Main.Screen:FindFirstChild("Hud")
+                          and player.PlayerGui.Main.Screen.Hud:FindFirstChild("Gold")
+            
+            if goldUI and goldUI:IsA("TextLabel") then
+                goldLabel.Text = "💰 " .. goldUI.Text
+            else
+                goldLabel.Text = "💰 Gold: --"
+            end
+            
+            task.wait(2)
+        end
+    end)
     
     print("   ✅ Black Screen Overlay Active")
 end
