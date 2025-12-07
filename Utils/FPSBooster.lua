@@ -50,8 +50,13 @@ local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local StarterGui = game:GetService("StarterGui")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
+
+-- Global reference for Black Screen toggle
+local BlackScreenOverlay = nil
+local BlackScreenEnabled = true
 
 ----------------------------------------------------------------
 -- 🎨 GRAPHICS QUALITY
@@ -391,7 +396,39 @@ local function enableBlackScreen()
     end)
     
     print("   ✅ Black Screen Overlay Active")
+    print("   🎮 Press F2 to Toggle!")
+    
+    BlackScreenOverlay = screenGui
 end
+
+-- Toggle Black Screen Function
+local function toggleBlackScreen()
+    if not BlackScreenOverlay then
+        print("⚠️ Black Screen not initialized!")
+        return
+    end
+    
+    BlackScreenEnabled = not BlackScreenEnabled
+    BlackScreenOverlay.Enabled = BlackScreenEnabled
+    
+    if BlackScreenEnabled then
+        print("🖤 Black Screen: ON")
+    else
+        print("🔆 Black Screen: OFF (UI visible)")
+    end
+end
+
+-- Global function for external access
+_G.ToggleBlackScreen = toggleBlackScreen
+
+-- F2 Keybind
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.F2 then
+        toggleBlackScreen()
+    end
+end)
 
 local function disable3DRendering()
     if not Settings.Disable3DRendering then return end
