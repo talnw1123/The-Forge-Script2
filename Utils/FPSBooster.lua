@@ -14,8 +14,9 @@ local Settings = {
     DisableShadows = true,         -- ปิดเงา
     DisableParticles = true,       -- ปิด Particles/Effects
     DisableDecals = true,          -- ปิด Decals
-    DisableTextures = false,       -- ปิด Textures (ทำให้ดูแย่มาก)
-    Disable3DRendering = false,    -- ปิด 3D Rendering (สุดขีด)
+    DisableTextures = true,       -- ปิด Textures (ทำให้ดูแย่มาก)
+    Disable3DRendering = true,    -- ปิด 3D Rendering (สุดขีด)
+    BlackScreenMode = true,       -- เปิดหน้าจอดำ (ประหยัด GPU + CPU)
     
     -- ====== LIGHTING ======
     DisableGlobalShadows = true,   -- ปิด Global Shadows
@@ -326,18 +327,61 @@ local function startFPSLimiter()
 end
 
 ----------------------------------------------------------------
--- 🖥️ 3D RENDERING (EXTREME)
+-- 🖥️ 3D RENDERING & BLACK SCREEN (EXTREME)
 ----------------------------------------------------------------
+local function enableBlackScreen()
+    if not Settings.BlackScreenMode then return end
+    
+    print("🖤 Enabling Black Screen Mode...")
+    
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "BlackScreenOverlay"
+    screenGui.IgnoreGuiInset = true
+    screenGui.DisplayOrder = 1000 -- Top most
+    screenGui.Parent = player:WaitForChild("PlayerGui")
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.BackgroundColor3 = Color3.new(0, 0, 0)
+    frame.BorderSizePixel = 0
+    frame.ZIndex = 1000
+    frame.Parent = screenGui
+    
+    local text = Instance.new("TextLabel")
+    text.Text = "🌑 AFK MODE: SAVING RESOURCES 🌑"
+    text.Size = UDim2.new(1, 0, 0, 50)
+    text.Position = UDim2.new(0, 0, 0.5, -25)
+    text.BackgroundTransparency = 1
+    text.TextColor3 = Color3.new(1, 1, 1)
+    text.Font = Enum.Font.RobotoMono
+    text.TextSize = 24
+    text.Parent = screenGui
+    
+    print("   ✅ Black Screen Overlay Active")
+end
+
 local function disable3DRendering()
     if not Settings.Disable3DRendering then return end
     
     print("🖥️ Disabling 3D Rendering (EXTREME)...")
     
-    pcall(function()
+    -- Method 1: RunService
+    local s1, _ = pcall(function()
         RunService:Set3dRenderingEnabled(false)
     end)
     
-    print("   ⚠️ 3D Rendering disabled!")
+    if s1 then
+        print("   ✅ Set3dRenderingEnabled(false) Success!")
+    else
+        print("   ⚠️ Set3dRenderingEnabled not supported, using fallback...")
+        
+        -- Method 2: Camera trick
+        local cam = Workspace.CurrentCamera
+        if cam then
+            -- Note: We can't destroy camera, but we can stop it from rendering much
+            -- Actually, just the overlay is often enough if 3D rendering API fails.
+        end
+    end
 end
 
 ----------------------------------------------------------------
@@ -411,6 +455,8 @@ local function runAllOptimizations()
     disableSounds()
     startGarbageCollection()
     startFPSLimiter()
+    startFPSLimiter()
+    enableBlackScreen()
     disable3DRendering()
     createFPSCounter()
     
