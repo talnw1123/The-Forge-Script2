@@ -175,5 +175,4 @@ else
     print(string.rep("=", 50))
 end
 
-
 Quest18Active = false
